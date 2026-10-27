@@ -1,0 +1,24 @@
+---
+title: "song_virality_v1"
+author: "Srikarthik Vangavolu"
+date: "2026-10-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+songs <- read.csv("song_longevity.csv", stringsAsFactors = TRUE)
+str(songs)
+summary(songs)
+songs$track_id <- NULL
+songs$streams_3yr <- NULL
+```
+
+```{r}
+simpleLR <- glm(is_hit ~ ., data = songs, family = "binomial")
+summary(simpleLR)
+```
+
