@@ -3,3 +3,81 @@ title: "KNN"
 output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(class)
+library(caret)
+```
+
+```{r}
+clean_song_data <- readRDS("song_longevity.rds")
+```
+
+# Split Data
+
+```{r}
+# KNN needs all-numeric inputs on the same scale, so first dummy-code the
+# factors (genre, label_tier) and then min-max normalize every predictor.
+# slow_burner is dropped because it is another outcome label, not a predictor.
+knn_data <- clean_song_data
+knn_data$slow_burner <- NULL
+
+knn_x <- as.data.frame(model.matrix(is_hit ~ . - 1, data = knn_data))
+knn_y <- as.factor(knn_data$is_hit)
+
+normalize <- function(x) {
+  (x - min(x)) / (max(x) - min(x))
+}
+knn_x <- as.data.frame(lapply(knn_x, normalize))
+
+# 70/30 train/test split
+set.seed(12345)
+train_rows <- sample(1:nrow(knn_x), 0.7 * nrow(knn_x))
+
+knn_train <- knn_x[train_rows, ]
+knn_test <- knn_x[-train_rows, ]
+knn_train_labels <- knn_y[train_rows]
+knn_test_labels <- knn_y[-train_rows]
+
+# Check that both sets have a similar share of hits
+prop.table(table(knn_train_labels))
+prop.table(table(knn_test_labels))
+```
+
+# Create Model and step along different K
+
+```{r}
+# Only ~10% of songs are hits, so accuracy alone is misleading (predicting
+# "not a hit" every time is already ~90% accurate). Track kappa as well.
+k_values <- seq(1, 39, by = 2)
+k_results <- data.frame(k = k_values, accuracy = NA, kappa = NA,
+                        sensitivity = NA, specificity = NA)
+
+for (i in seq_along(k_values)) {
+  knn_pred <- knn(train = knn_train, test = knn_test,
+                  cl = knn_train_labels, k = k_values[i])
+  cm <- confusionMatrix(knn_pred, knn_test_labels, positive = "1")
+  k_results$accuracy[i] <- cm$overall["Accuracy"]
+  k_results$kappa[i] <- cm$overall["Kappa"]
+  k_results$sensitivity[i] <- cm$byClass["Sensitivity"]
+  k_results$specificity[i] <- cm$byClass["Specificity"]
+}
+
+k_results
+```
+
+```{r}
+plot(k_results$k, k_results$kappa, type = "b", pch = 19,
+     xlab = "K", ylab = "Kappa", main = "KNN Kappa by K")
+```
+
+# Pick best K
+
+```{r}
+best_k <- k_results$k[which.max(k_results$kappa)]
+best_k
+
+knn_best_pred <- knn(train = knn_train, test = knn_test,
+                     cl = knn_train_labels, k = best_k)
+confusionMatrix(knn_best_pred, knn_test_labels, positive = "1")
+```
