@@ -1,6 +1,6 @@
 ---
 title: "song_virality_v1"
-author: "Srikarthik Vangavolu"
+author: "Srikarthik Vangavolu, Darius Lorens"
 date: "2026-10-22"
 output: html_document
 ---
