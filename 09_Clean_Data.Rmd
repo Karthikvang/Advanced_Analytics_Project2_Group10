@@ -1,0 +1,62 @@
+---
+title: "09 Clean Data"
+date: "2026-10-27"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load Data
+```{r}
+# Load data in
+songs <- read.csv("song_longevity.csv", stringsAsFactors = TRUE)
+
+# Initial look of data
+str(songs)
+summary(songs)
+```
+### Clean Data
+```{r}
+# Remove unnecessary columns
+songs$track_id <- NULL
+songs$streams_3yr <- NULL
+```
+*explanation*
+
+### Exploratory Data Analysis
+
+### Convert factors into dummy variables
+```{r}
+# store is_hit as a factor of 0 and 1 levels
+songs$is_hit <- factor(songs$is_hit, levels = c(0, 1))
+d_without_is_hit <- as.data.frame(model.matrix(is_hit ~ ., data = songs)[, -1])
+dummies <- data.frame(d_without_is_hit, hit = songs$is_hit)
+```
+
+### Split 50/50 train and test data
+```{r}
+ratio = 0.5
+set.seed(12345)
+
+train_rows <- sample(1:nrow(dummies), ratio*nrow(dummies))
+song_train <- dummies[train_rows, ]
+song_test <- dummies[-train_rows, ]
+
+mean(as.numeric(song_train$is_hit))
+mean(as.numeric(song_test$is_hit))
+```
+
+### Load into RDS
+```{r}
+saveRDS(song_train, "rds/song_train.rds")
+saveRDS(song_test, "rds/song_test.rds")
+```
+
+

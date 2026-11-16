@@ -1,0 +1,90 @@
+---
+title: "Logistic Regression"
+output:
+  html_document:
+    code_folding: hide
+    toc: true
+    toc_float: true
+    toc_depth: 3
+---
+
+### Load in Data
+```{r}
+# get train and test data from rds
+song_train <- readRDS("rds/song_train.rds")
+song_test <- readRDS("rds/song_test.rds")
+str(song_train)
+```
+
+### Create Model
+```{r}
+# build basic lr model
+lr <- glm(hit ~ ., data = song_train, family = "binomial")
+summary(lr)
+
+# kitchen sink model, incorporating interaction effects and non linear relationships
+giantkitchensink <- glm(hit ~ . + tiktok_virality * editorial_playlist
+                        + genrerock * energy
+                        + genrernb * energy
+                        + genrepop * energy
+                        + genrelatin * energy
+                        + genreindie * energy
+                        + genrehiphop * energy
+                        + genreedm * energy
+                        + playlist_adds_first_month * editorial_playlist
+                        + playlist_adds_first_month * tiktok_virality
+                        + artist_prior_monthly_listeners * featured_artist
+                        + marketing_budget * label_tiermajor
+                        + marketing_budget * label_tierindie_label
+                        + log(artist_prior_monthly_listeners)
+                        + I(playlist_adds_first_month^2)
+                        + I(tiktok_virality^2), data = song_train, family = "binomial")
+
+# use the step model to find the most significant interaction effects and non linear relationships
+final_model <- step(giantkitchensink, direction = "backward")
+
+# hit ~ genreedm + genreindie + genrelatin + energy + instrumentalness + 
+##     label_tierindie_label + label_tiermajor + marketing_budget + 
+##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
+##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
+##     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
+##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
+##     genrelatin:energy + playlist_adds_first_month:editorial_playlist + 
+##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget
+```
+
+log(artist_prior_monthly_listeners)
+- because skewed
+### Predict test data
+```{r}
+# predict test dataset with model
+song_lm_predict <- predict(final_model, song_test, type = "response")
+summary(song_lm_predict)
+```
+
+### Put predict probabilities to bins
+```{r}
+song_lm_bin <- factor(ifelse(song_lm_predict >= 0.5, "1", "0"), levels = c("0", "1"))
+summary(song_lm_bin)
+```
+
+### Confusion Matrix
+```{r}
+library(caret)
+cm_lr <- confusionMatrix(as.factor(song_lm_bin), as.factor(song_test$hit), positive = "1")
+cm_lr
+```
+
+### Save to RDS
+```{r}
+# save probabilities to rds to be used in stacked model
+saveRDS(song_lm_predict, "rds/lm_predict.rds")
+
+# save confusion matrix to rds
+saveRDS(cm_lr, "rds/cm_lr.rds")
+```
+
+
+
+
+
