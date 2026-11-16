@@ -48,7 +48,7 @@ prop.table(table(knn_test_labels))
 
 ```{r}
 # Only ~10% of songs are hits, so accuracy alone is misleading (predicting
-# "not a hit" every time is already ~90% accurate). Track kappa as well.
+# "not a hit" every time is already ~90% accurate). 
 k_values <- seq(1, 39, by = 2)
 k_results <- data.frame(k = k_values, accuracy = NA, kappa = NA,
                         sensitivity = NA, specificity = NA)
@@ -58,7 +58,6 @@ for (i in seq_along(k_values)) {
                   cl = knn_train_labels, k = k_values[i])
   cm <- confusionMatrix(knn_pred, knn_test_labels, positive = "1")
   k_results$accuracy[i] <- cm$overall["Accuracy"]
-  k_results$kappa[i] <- cm$overall["Kappa"]
   k_results$sensitivity[i] <- cm$byClass["Sensitivity"]
   k_results$specificity[i] <- cm$byClass["Specificity"]
 }
@@ -67,14 +66,14 @@ k_results
 ```
 
 ```{r}
-plot(k_results$k, k_results$kappa, type = "b", pch = 19,
-     xlab = "K", ylab = "Kappa", main = "KNN Kappa by K")
+plot(k_results$k, k_results$Sensitivity, type = "b", pch = 19,
+     xlab = "K", ylab = "Sensitivity", main = "KNN Sensitivty by K")
 ```
 
 # Pick best K
 
 ```{r}
-best_k <- k_results$k[which.max(k_results$kappa)]
+best_k <- k_results$k[which.max(k_results$sensitivity)]
 best_k
 
 knn_best_pred <- knn(train = knn_train, test = knn_test,
