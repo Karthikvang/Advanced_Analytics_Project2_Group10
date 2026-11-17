@@ -12,5 +12,39 @@ output:
 ```{r}
 song_test <- readRDS("rds/song_test.rds")
 song_train <- readRDS("rds/song_train.rds")
+library(kernlab)
+library(caret)
+```
+
+```{r}
+svm_train <- song_train
+svm_test  <- song_test
+svm_train$hit <- as.factor(svm_train$hit)
+svm_test$hit  <- factor(svm_test$hit, levels = c(0, 1))
+```
+
+```{r}
+set.seed(12345)
+svm_base <- ksvm(hit ~ ., data = svm_train, kernel = "vanilladot", prob.model = TRUE)
+```
+
+```{r}
+p_svm_base <- predict(svm_base, svm_test, type = "probabilities")[, "1"]
+summary(p_svm_base)
+```
+
+```{r}
+confusionMatrix(factor(ifelse(p_svm_base >= 0.5, 1, 0), levels = c(0, 1)),
+                svm_test$hit, positive = "1")
+```
+
+```{r}
+set.seed(12345)
+svm_rbf <- ksvm(hit ~ ., data = svm_train, kernel = "rbfdot", prob.model = TRUE)
+
+p_svm_rbf <- predict(svm_rbf, svm_test, type = "probabilities")[, "1"]
+
+confusionMatrix(factor(ifelse(p_svm_rbf >= 0.5, 1, 0), levels = c(0, 1)),
+                svm_test$hit, positive = "1")
 ```
 
