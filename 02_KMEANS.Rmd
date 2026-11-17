@@ -9,9 +9,9 @@ output:
 ---
 ### Load in Data
 ```{r}
-# get train and test data from rds
-song_train <- readRDS("rds/song_train.rds")
-song_test <- readRDS("rds/song_test.rds")
+# get scaled train and test data from rds
+song_train <- readRDS("rds/song_train_norm.rds")
+song_test <- readRDS("rds/song_test_norm.rds")
 str(song_train)
 ```
 

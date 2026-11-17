@@ -71,9 +71,48 @@ summary(song_lm_bin)
 ### Confusion Matrix
 ```{r}
 library(caret)
-cm_lr <- confusionMatrix(as.factor(song_lm_bin), as.factor(song_test$hit), positive = "1")
-cm_lr
+first_cm_lr <- confusionMatrix(as.factor(song_lm_bin), as.factor(song_test$hit), positive = "1")
+first_cm_lr
 ```
+
+### Improving the model
+
+#### Stepwise improvement
+```{r}
+# stricter selection in the stepwise regression
+final_new <- step(giantkitchensink, direction = "backward", k = log(nrow(song_train)))
+
+# new predictions
+song_lm_predict_new <- predict(final_new, song_test, type = "response")
+song_lm_bin_new <- factor(ifelse(song_lm_predict_new >= 0.5, "1", "0"), levels = c("0", "1"))
+summary(song_lm_bin_new)
+
+# new confusion matrix
+second_cm_lr <- confusionMatrix(as.factor(song_lm_bin_new), as.factor(song_test$hit), positive = "1")
+second_cm_lr
+```
+
+#### Testing different thresholds
+```{r}
+# optimizing threshold
+set.seed(12345)
+folds <- sample(rep(1:10, length.out = nrow(song_train)))
+oof <- numeric(nrow(song_train))
+for (f in 1:10) {
+  m <- glm(formula(final_model), data = song_train[folds != f, ], family = binomial)
+  oof[folds == f] <- predict(m, song_train[folds == f, ], type = "response")
+}
+
+thr <- seq(0.3, 0.7, by = 0.025)
+res <- t(sapply(thr, function(t) {
+  p  <- factor(ifelse(oof >= t, "1", "0"), levels = c("0", "1"))
+  cm <- confusionMatrix(p, song_train$hit, positive = "1")
+  c(thr = t, acc = cm$overall["Accuracy"], sens = cm$byClass["Sensitivity"],
+    spec = cm$byClass["Specificity"], kappa = cm$overall["Kappa"])
+}))
+res
+```
+
 
 ### Save to RDS
 ```{r}
@@ -81,7 +120,7 @@ cm_lr
 saveRDS(song_lm_predict, "rds/lm_predict.rds")
 
 # save confusion matrix to rds
-saveRDS(cm_lr, "rds/cm_lr.rds")
+saveRDS(first_cm_lr, "rds/cm_lr.rds")
 ```
 
 
