@@ -14,74 +14,118 @@ library(class)
 library(caret)
 ```
 
+### Load in Data
 ```{r}
-clean_song_data <- readRDS("song_longevity.rds")
+# get the min-max normalized train and test data from rds
+# (created in 09_Clean_Data.Rmd, same 50/50 split used by the other models)
+song_train <- readRDS("rds/song_train_norm.rds")
+song_test <- readRDS("rds/song_test_norm.rds")
+str(song_train)
 ```
 
-# Split Data
-
+### Prepare Data
 ```{r}
-# KNN needs all-numeric inputs on the same scale, so first dummy-code the
-# factors (genre, label_tier) and then min-max normalize every predictor.
+# KNN is distance based, so it needs all-numeric predictors on the same scale.
+# The rds data is already dummy-coded and min-max normalized.
 # slow_burner is dropped because it is another outcome label, not a predictor.
-knn_data <- clean_song_data
-knn_data$slow_burner <- NULL
+predictors <- setdiff(names(song_train), c("hit", "slow_burner"))
 
-knn_x <- as.data.frame(model.matrix(is_hit ~ . - 1, data = knn_data))
-knn_y <- as.factor(knn_data$is_hit)
-
-normalize <- function(x) {
-  (x - min(x)) / (max(x) - min(x))
-}
-knn_x <- as.data.frame(lapply(knn_x, normalize))
-
-# 70/30 train/test split
-set.seed(12345)
-train_rows <- sample(1:nrow(knn_x), 0.7 * nrow(knn_x))
-
-knn_train <- knn_x[train_rows, ]
-knn_test <- knn_x[-train_rows, ]
-knn_train_labels <- knn_y[train_rows]
-knn_test_labels <- knn_y[-train_rows]
+knn_train <- song_train[, predictors]
+knn_test <- song_test[, predictors]
+knn_train_labels <- song_train$hit
+knn_test_labels <- song_test$hit
 
 # Check that both sets have a similar share of hits
 prop.table(table(knn_train_labels))
 prop.table(table(knn_test_labels))
 ```
 
-# Create Model and step along different K
-
+### Create Model and step along different K and cutoffs
 ```{r}
 # Only ~10% of songs are hits, so accuracy alone is misleading (predicting
-# "not a hit" every time is already ~90% accurate). 
+# "not a hit" every time is already ~90% accurate). We tune on kappa instead.
+#
+# With a plain majority vote, a song is only called a hit when more than half
+# of its neighbors are hits, which almost never happens for larger K. So for
+# each K we take the share of neighbors that are hits as a probability and
+# also step along the cutoff used to call a song a hit.
 k_values <- seq(1, 39, by = 2)
-k_results <- data.frame(k = k_values, accuracy = NA, kappa = NA,
-                        sensitivity = NA, specificity = NA)
+cutoffs <- seq(0.05, 0.5, by = 0.05)
 
-for (i in seq_along(k_values)) {
-  knn_pred <- knn(train = knn_train, test = knn_test,
-                  cl = knn_train_labels, k = k_values[i])
-  cm <- confusionMatrix(knn_pred, knn_test_labels, positive = "1")
-  k_results$accuracy[i] <- cm$overall["Accuracy"]
-  k_results$sensitivity[i] <- cm$byClass["Sensitivity"]
-  k_results$specificity[i] <- cm$byClass["Specificity"]
+# turn knn() output into the probability of being a hit
+# (knn() reports the share of votes for the winning class)
+hit_prob <- function(pred) {
+  win_prob <- attr(pred, "prob")
+  ifelse(pred == "1", win_prob, 1 - win_prob)
 }
 
-k_results
+to_bin <- function(prob, cutoff) {
+  factor(ifelse(prob >= cutoff, "1", "0"), levels = c("0", "1"))
+}
+
+k_results <- expand.grid(cutoff = cutoffs, k = k_values)[, c("k", "cutoff")]
+k_results[, c("accuracy", "kappa", "sensitivity", "specificity")] <- NA
+knn_probs <- list()
+
+set.seed(12345)
+for (k in k_values) {
+  knn_pred <- knn(train = knn_train, test = knn_test,
+                  cl = knn_train_labels, k = k, prob = TRUE)
+  knn_probs[[as.character(k)]] <- hit_prob(knn_pred)
+
+  for (cutoff in cutoffs) {
+    cm <- confusionMatrix(to_bin(knn_probs[[as.character(k)]], cutoff),
+                          knn_test_labels, positive = "1")
+    row <- which(k_results$k == k & k_results$cutoff == cutoff)
+    k_results$accuracy[row] <- cm$overall["Accuracy"]
+    k_results$kappa[row] <- cm$overall["Kappa"]
+    k_results$sensitivity[row] <- cm$byClass["Sensitivity"]
+    k_results$specificity[row] <- cm$byClass["Specificity"]
+  }
+}
+
+# best cutoff for each K
+best_by_k <- do.call(rbind, lapply(split(k_results, k_results$k),
+                                   function(d) d[which.max(d$kappa), ]))
+best_by_k
 ```
 
 ```{r}
-plot(k_results$k, k_results$Sensitivity, type = "b", pch = 19,
-     xlab = "K", ylab = "Sensitivity", main = "KNN Sensitivty by K")
+# kappa with a plain majority vote (cutoff 0.5) vs. the best cutoff for each K
+majority <- k_results[k_results$cutoff == 0.5, ]
+plot(best_by_k$k, best_by_k$kappa, type = "b", pch = 19,
+     ylim = range(0, best_by_k$kappa),
+     xlab = "K", ylab = "Kappa", main = "KNN Kappa by K")
+lines(majority$k, majority$kappa, type = "b", pch = 1, lty = 2)
+legend("right", legend = c("Best cutoff", "Majority vote (0.5)"),
+       pch = c(19, 1), lty = c(1, 2))
 ```
 
-# Pick best K
-
+### Pick best K and cutoff
 ```{r}
-best_k <- k_results$k[which.max(k_results$sensitivity)]
-best_k
+# Kappa levels off at the elbow around K = 15; larger K adds almost nothing,
+# so we use K = 15 with the cutoff that gives it the highest kappa.
+best_k <- 15
+best <- best_by_k[best_by_k$k == best_k, ]
+best
 
-knn_best_pred <- knn(train = knn_train, test = knn_test,
-                     cl = knn_train_labels, k = best_k)
-confusionMatrix(knn_best_pred, knn_test_labels, positive = "1")
+song_knn_predict <- knn_probs[[as.character(best$k)]]
+names(song_knn_predict) <- rownames(song_test)
+song_knn_bin <- to_bin(song_knn_predict, best$cutoff)
+summary(song_knn_bin)
+```
+
+### Confusion Matrix
+```{r}
+cm_knn <- confusionMatrix(song_knn_bin, knn_test_labels, positive = "1")
+cm_knn
+```
+
+### Save to RDS
+```{r}
+# save probabilities to rds to be used in stacked model
+saveRDS(song_knn_predict, "rds/knn_predict.rds")
+
+# save confusion matrix to rds
+saveRDS(cm_knn, "rds/cm_knn.rds")
 ```

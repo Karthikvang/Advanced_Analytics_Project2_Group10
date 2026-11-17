@@ -53,10 +53,41 @@ mean(as.numeric(song_train$is_hit))
 mean(as.numeric(song_test$is_hit))
 ```
 
+### Min-max normalize train and test data
+```{r}
+# Distance and gradient based models (KNN, ANN, SVM, K-means) need every
+# predictor on the same scale, so min-max normalize each predictor to 0-1.
+# The min and max come from the training data only and are then applied to
+# the test data, so nothing about the test set leaks into the scaling.
+# (Test values outside the training range can land slightly below 0 or above 1.)
+# The outcome, hit, is left as a factor.
+predictors <- setdiff(names(song_train), "hit")
+
+train_min <- sapply(song_train[, predictors], min)
+train_max <- sapply(song_train[, predictors], max)
+
+normalize <- function(df) {
+  scaled <- as.data.frame(Map(function(x, lo, hi) (x - lo) / (hi - lo),
+                              df[, predictors], train_min, train_max))
+  rownames(scaled) <- rownames(df)
+  scaled$hit <- df$hit
+  scaled
+}
+
+song_train_norm <- normalize(song_train)
+song_test_norm <- normalize(song_test)
+
+summary(song_train_norm)
+```
+
 ### Load into RDS
 ```{r}
 saveRDS(song_train, "rds/song_train.rds")
 saveRDS(song_test, "rds/song_test.rds")
+
+# normalized versions
+saveRDS(song_train_norm, "rds/song_train_norm.rds")
+saveRDS(song_test_norm, "rds/song_test_norm.rds")
 ```
 
 
