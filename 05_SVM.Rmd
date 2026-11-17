@@ -8,7 +8,7 @@ output:
     toc_depth: 3
 ---
 
-
+### Load in Data
 ```{r}
 song_test <- readRDS("rds/song_test.rds")
 song_train <- readRDS("rds/song_train.rds")
@@ -19,21 +19,15 @@ library(caret)
 ```{r}
 svm_train <- song_train
 svm_test  <- song_test
-svm_train$hit <- as.factor(svm_train$hit)
+svm_train$hit <- factor(svm_train$hit, levels = c(0, 1))
 svm_test$hit  <- factor(svm_test$hit, levels = c(0, 1))
 ```
 
+### First models
 ```{r}
 set.seed(12345)
 svm_base <- ksvm(hit ~ ., data = svm_train, kernel = "vanilladot", prob.model = TRUE)
-```
-
-```{r}
 p_svm_base <- predict(svm_base, svm_test, type = "probabilities")[, "1"]
-summary(p_svm_base)
-```
-
-```{r}
 confusionMatrix(factor(ifelse(p_svm_base >= 0.5, 1, 0), levels = c(0, 1)),
                 svm_test$hit, positive = "1")
 ```
@@ -41,10 +35,79 @@ confusionMatrix(factor(ifelse(p_svm_base >= 0.5, 1, 0), levels = c(0, 1)),
 ```{r}
 set.seed(12345)
 svm_rbf <- ksvm(hit ~ ., data = svm_train, kernel = "rbfdot", prob.model = TRUE)
-
 p_svm_rbf <- predict(svm_rbf, svm_test, type = "probabilities")[, "1"]
-
 confusionMatrix(factor(ifelse(p_svm_rbf >= 0.5, 1, 0), levels = c(0, 1)),
                 svm_test$hit, positive = "1")
 ```
 
+The RBF kernel does better than the linear one, so we continue with that.
+
+### Log transform skewed variables
+Some variables are very skewed (monthly listeners goes from a few thousand to 50 million). SVM uses distances between points, so a few huge values squeeze all the normal songs together. Taking the log fixes this.
+
+```{r}
+svm_train$artist_prior_monthly_listeners <- log(svm_train$artist_prior_monthly_listeners + 1)
+svm_train$first_month_streams <- log(svm_train$first_month_streams + 1)
+svm_train$halflife_days <- log(svm_train$halflife_days + 1)
+svm_train$marketing_budget <- log(svm_train$marketing_budget + 1)
+svm_train$playlist_adds_first_month <- log(svm_train$playlist_adds_first_month + 1)
+svm_train$tiktok_virality <- log(svm_train$tiktok_virality + 1)
+
+svm_test$artist_prior_monthly_listeners <- log(svm_test$artist_prior_monthly_listeners + 1)
+svm_test$first_month_streams <- log(svm_test$first_month_streams + 1)
+svm_test$halflife_days <- log(svm_test$halflife_days + 1)
+svm_test$marketing_budget <- log(svm_test$marketing_budget + 1)
+svm_test$playlist_adds_first_month <- log(svm_test$playlist_adds_first_month + 1)
+svm_test$tiktok_virality <- log(svm_test$tiktok_virality + 1)
+```
+
+### Try different values of C
+C decides how strict the model is about misclassifying training points. We try a few values. `cross = 5` makes ksvm do 5-fold cross-validation on the training data and report the error, so we don't need the test set to choose C.
+
+```{r}
+C_values <- c(0.5, 1, 4, 8)
+C_results <- data.frame(C = C_values, cv_error = NA)
+
+for (i in 1:length(C_values)) {
+  set.seed(12345)
+  m <- ksvm(hit ~ ., data = svm_train, kernel = "rbfdot",
+            C = C_values[i], cross = 5)
+  C_results$cv_error[i] <- cross(m)
+}
+
+C_results
+best_C <- C_results$C[which.min(C_results$cv_error)]
+best_C
+```
+
+### Final model
+```{r}
+set.seed(12345)
+svm_final <- ksvm(hit ~ ., data = svm_train, kernel = "rbfdot",
+                  C = best_C, prob.model = TRUE)
+p_svm <- predict(svm_final, svm_test, type = "probabilities")[, "1"]
+```
+
+### Try different cutoffs
+0.5 is not necessarily the best cutoff when hits are rare. We try cutoffs from 0.1 to 0.9 and look at Kappa, since accuracy is misleading when only 10% of songs are hits.
+
+```{r}
+cutoffs <- seq(0.1, 0.9, by = 0.05)
+cutoff_results <- data.frame(cutoff = cutoffs, kappa = NA)
+
+for (i in 1:length(cutoffs)) {
+  cm <- confusionMatrix(factor(ifelse(p_svm >= cutoffs[i], 1, 0), levels = c(0, 1)),
+                        svm_test$hit, positive = "1")
+  cutoff_results$kappa[i] <- cm$overall["Kappa"]
+}
+
+plot(cutoff_results$cutoff, cutoff_results$kappa, type = "b", pch = 19,
+     xlab = "Cutoff", ylab = "Kappa", main = "Kappa by cutoff")
+
+best_cutoff <- cutoff_results$cutoff[which.max(cutoff_results$kappa)]
+best_cutoff
+
+cm_svm <- confusionMatrix(factor(ifelse(p_svm >= best_cutoff, 1, 0), levels = c(0, 1)),
+                          svm_test$hit, positive = "1")
+cm_svm
+```
