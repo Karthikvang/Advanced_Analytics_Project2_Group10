@@ -7,4 +7,13 @@ output:
     toc_float: true
     toc_depth: 3
 ---
+### Load in Data
+```{r}
+# get train and test data from rds
+song_train <- readRDS("rds/song_train.rds")
+song_test <- readRDS("rds/song_test.rds")
+str(song_train)
+```
+
+
 

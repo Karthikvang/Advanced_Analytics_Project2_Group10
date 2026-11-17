@@ -31,6 +31,17 @@ songs$streams_3yr <- NULL
 *explanation*
 
 ### Exploratory Data Analysis
+```{r}
+library(ggplot2)
+ggplot(songs, aes(x = is_hit)) +
+  geom_bar(fill = "steelblue") +
+  labs(
+    title = "Distribution of Hit Songs",
+    x = "Hits",
+    y = "Number of Songs"
+  )
+```
+
 
 ### Convert factors into dummy variables
 ```{r}
