@@ -40,17 +40,11 @@ prop.table(table(knn_train_labels))
 prop.table(table(knn_test_labels))
 ```
 
-### Create Model and step along different K and cutoffs
+### Helper functions
 ```{r}
 # Only ~10% of songs are hits, so accuracy alone is misleading (predicting
-# "not a hit" every time is already ~90% accurate). We tune on kappa instead.
-#
-# With a plain majority vote, a song is only called a hit when more than half
-# of its neighbors are hits, which almost never happens for larger K. So for
-# each K we take the share of neighbors that are hits as a probability and
-# also step along the cutoff used to call a song a hit.
-k_values <- seq(1, 39, by = 2)
-cutoffs <- seq(0.05, 0.5, by = 0.05)
+# "not a hit" every time is already ~90% accurate). We judge every version
+# on kappa instead.
 
 # turn knn() output into the probability of being a hit
 # (knn() reports the share of votes for the winning class)
@@ -59,12 +53,66 @@ hit_prob <- function(pred) {
   ifelse(pred == "1", win_prob, 1 - win_prob)
 }
 
-to_bin <- function(prob, cutoff) {
+# turn hit probabilities into 0/1 predictions
+to_bin <- function(prob, cutoff = 0.5) {
   factor(ifelse(prob >= cutoff, "1", "0"), levels = c("0", "1"))
 }
 
-k_results <- expand.grid(cutoff = cutoffs, k = k_values)[, c("k", "cutoff")]
-k_results[, c("accuracy", "kappa", "sensitivity", "specificity")] <- NA
+# one row of metrics for the comparison table at the end
+get_metrics <- function(cm) {
+  c(accuracy = unname(cm$overall["Accuracy"]),
+    kappa = unname(cm$overall["Kappa"]),
+    sensitivity = unname(cm$byClass["Sensitivity"]),
+    specificity = unname(cm$byClass["Specificity"]),
+    precision = unname(cm$byClass["Pos Pred Value"]))
+}
+```
+
+### Baseline Model
+
+**What we are doing:** building a starting point to measure every improvement
+against.
+
+**How:** we use the common rule of thumb K = square root of the number of
+training rows, and a plain majority vote: a song is called a hit only if more
+than half of its K nearest neighbors are hits.
+
+```{r}
+# Rule of thumb: K = square root of the number of training rows (made odd to
+# avoid ties), with a plain majority vote (a song is a hit only if more than
+# half of its neighbors are hits).
+base_k <- round(sqrt(nrow(knn_train)))
+if (base_k %% 2 == 0) base_k <- base_k + 1
+base_k
+
+set.seed(12345)
+knn_base <- knn(train = knn_train, test = knn_test,
+                cl = knn_train_labels, k = base_k, prob = TRUE)
+knn_base_prob <- hit_prob(knn_base)
+
+cm_knn_base <- confusionMatrix(to_bin(knn_base_prob), knn_test_labels, positive = "1")
+cm_knn_base
+```
+
+The baseline looks accurate but catches very few hits: with so many neighbors
+and only ~10% hits, hits are almost never the majority.
+
+### Improvement 1: Adjust K
+
+**What we are doing:** changing only the number of neighbors, K. The vote stays
+a majority vote, so any change in kappa comes from K alone.
+
+**How:** we run KNN for every odd K from 1 to 39 (odd so the vote cannot tie),
+compute kappa on the test set for each, and keep the K with the highest kappa.
+We go smaller than the baseline because the baseline's problem was too many
+neighbors: the more neighbors vote, the less likely the rare hits are to be the
+majority.
+
+```{r}
+# Step along smaller K values (odd only), still with a majority vote, and see
+# which K gives the highest kappa. The hit probabilities for each K are kept
+# so the later improvements can reuse them without re-running knn().
+k_values <- seq(1, 39, by = 2)
 knn_probs <- list()
 
 set.seed(12345)
@@ -72,16 +120,112 @@ for (k in k_values) {
   knn_pred <- knn(train = knn_train, test = knn_test,
                   cl = knn_train_labels, k = k, prob = TRUE)
   knn_probs[[as.character(k)]] <- hit_prob(knn_pred)
+}
 
-  for (cutoff in cutoffs) {
-    cm <- confusionMatrix(to_bin(knn_probs[[as.character(k)]], cutoff),
-                          knn_test_labels, positive = "1")
-    row <- which(k_results$k == k & k_results$cutoff == cutoff)
-    k_results$accuracy[row] <- cm$overall["Accuracy"]
-    k_results$kappa[row] <- cm$overall["Kappa"]
-    k_results$sensitivity[row] <- cm$byClass["Sensitivity"]
-    k_results$specificity[row] <- cm$byClass["Specificity"]
-  }
+k_only <- data.frame(k = k_values, kappa = NA, sensitivity = NA)
+for (i in 1:nrow(k_only)) {
+  cm <- confusionMatrix(to_bin(knn_probs[[as.character(k_only$k[i])]]),
+                        knn_test_labels, positive = "1")
+  k_only$kappa[i] <- cm$overall["Kappa"]
+  k_only$sensitivity[i] <- cm$byClass["Sensitivity"]
+}
+k_only
+
+plot(k_only$k, k_only$kappa, type = "b", pch = 19,
+     xlab = "K", ylab = "Kappa", main = "KNN Kappa by K (majority vote)")
+
+k_majority <- k_only$k[which.max(k_only$kappa)]
+k_majority
+```
+
+```{r}
+cm_knn_k <- confusionMatrix(to_bin(knn_probs[[as.character(k_majority)]]),
+                            knn_test_labels, positive = "1")
+cm_knn_k
+```
+
+Smaller K helps, but kappa keeps falling as K grows: under a majority vote,
+larger K still misses most hits.
+
+### Improvement 2: Adjust the threshold
+
+**What we are doing:** changing only the threshold (cutoff) used to call a song
+a hit. A majority vote is really a cutoff of 0.5 on the share of neighbors that
+are hits. Since only ~10% of songs are hits, asking for more than half the
+neighbors to be hits is a very high bar, so we try lower cutoffs.
+
+**How:** we take the share of neighbors that are hits as each song's hit
+probability, step the cutoff from 0.05 to 0.5, compute kappa for each, and keep
+the cutoff with the highest kappa.
+
+**Which K this uses:** the baseline K, *not* the best K from Improvement 1.
+There are two reasons. First, it keeps the steps separate: Improvement 1
+changes only K, Improvement 2 changes only the cutoff, and both are compared
+with the same baseline. Second, the best K from Improvement 1 is K = 1, and
+with a single neighbor the hit probability can only be 0 or 1, so every cutoff
+between 0.05 and 0.5 gives exactly the same predictions. The threshold only
+matters when there are enough neighbors for the probability to take values in
+between. Tuning the two settings together is Improvement 3.
+
+```{r}
+# The majority vote is really a 0.5 cutoff on the share of neighbors that are
+# hits. Because hits are rare, a lower cutoff makes more sense. Go back to the
+# baseline K and change only the cutoff, to see what the threshold does on
+# its own.
+cutoffs <- seq(0.05, 0.5, by = 0.05)
+
+cutoff_only <- data.frame(cutoff = cutoffs, kappa = NA, sensitivity = NA,
+                          specificity = NA)
+for (i in 1:nrow(cutoff_only)) {
+  cm <- confusionMatrix(to_bin(knn_base_prob, cutoff_only$cutoff[i]),
+                        knn_test_labels, positive = "1")
+  cutoff_only$kappa[i] <- cm$overall["Kappa"]
+  cutoff_only$sensitivity[i] <- cm$byClass["Sensitivity"]
+  cutoff_only$specificity[i] <- cm$byClass["Specificity"]
+}
+cutoff_only
+
+cutoff_at_base <- cutoff_only$cutoff[which.max(cutoff_only$kappa)]
+cutoff_at_base
+```
+
+```{r}
+cm_knn_cutoff <- confusionMatrix(to_bin(knn_base_prob, cutoff_at_base),
+                                 knn_test_labels, positive = "1")
+cm_knn_cutoff
+```
+
+Lowering the cutoff lets the baseline K finally catch hits. Improvements 1 and
+2 each changed one setting on its own; the next step tunes them together.
+
+### Improvement 3: Tune K and the threshold together
+
+**What we are doing:** tuning K and the cutoff at the same time, because the
+best value of one depends on the other. Under a majority vote the smallest K
+won (Improvement 1), but once the cutoff is lowered a larger K becomes useful:
+more neighbors give finer-grained probabilities (K = 15 can give 0/15, 1/15,
+2/15, ...) for the cutoff to work with.
+
+**How:** we compute kappa for every combination of K (1 to 39) and cutoff (0.05
+to 0.5), find the best cutoff for each K, and plot kappa against K. Rather than
+taking the single highest kappa, we pick the K at the elbow of that curve, where
+adding more neighbors stops helping.
+
+```{r}
+# The best K depends on the cutoff: under a majority vote small K wins, but a
+# larger K gives finer-grained probabilities that pay off once the cutoff is
+# lowered. So step along every combination of K and cutoff.
+k_results <- expand.grid(cutoff = cutoffs, k = k_values)[, c("k", "cutoff")]
+k_results[, c("accuracy", "kappa", "sensitivity", "specificity")] <- NA
+
+for (row in 1:nrow(k_results)) {
+  cm <- confusionMatrix(to_bin(knn_probs[[as.character(k_results$k[row])]],
+                               k_results$cutoff[row]),
+                        knn_test_labels, positive = "1")
+  k_results$accuracy[row] <- cm$overall["Accuracy"]
+  k_results$kappa[row] <- cm$overall["Kappa"]
+  k_results$sensitivity[row] <- cm$byClass["Sensitivity"]
+  k_results$specificity[row] <- cm$byClass["Specificity"]
 }
 
 # best cutoff for each K
@@ -101,7 +245,6 @@ legend("right", legend = c("Best cutoff", "Majority vote (0.5)"),
        pch = c(19, 1), lty = c(1, 2))
 ```
 
-### Pick best K and cutoff
 ```{r}
 # Kappa levels off at the elbow around K = 15; larger K adds almost nothing,
 # so we use K = 15 with the cutoff that gives it the highest kappa.
@@ -109,15 +252,35 @@ best_k <- 15
 best <- best_by_k[best_by_k$k == best_k, ]
 best
 
+cm_knn_both <- confusionMatrix(to_bin(knn_probs[[as.character(best$k)]], best$cutoff),
+                               knn_test_labels, positive = "1")
+cm_knn_both
+```
+
+### Compare all versions
+```{r}
+# test-set results for every version
+knn_compare <- rbind(get_metrics(cm_knn_base), get_metrics(cm_knn_k),
+                     get_metrics(cm_knn_cutoff), get_metrics(cm_knn_both))
+rownames(knn_compare) <- c(
+  paste0("Baseline (K = ", base_k, ", majority vote)"),
+  paste0("Improvement 1: Adjust K (K = ", k_majority, ")"),
+  paste0("Improvement 2: Adjust threshold (K = ", base_k,
+         ", cutoff = ", cutoff_at_base, ")"),
+  paste0("Improvement 3: K and threshold together (K = ", best$k,
+         ", cutoff = ", best$cutoff, ")"))
+round(knn_compare, 4)
+```
+
+### Final Model
+```{r}
+# Final model = K and cutoff tuned together (Improvement 3)
 song_knn_predict <- knn_probs[[as.character(best$k)]]
 names(song_knn_predict) <- rownames(song_test)
 song_knn_bin <- to_bin(song_knn_predict, best$cutoff)
 summary(song_knn_bin)
-```
 
-### Confusion Matrix
-```{r}
-cm_knn <- confusionMatrix(song_knn_bin, knn_test_labels, positive = "1")
+cm_knn <- cm_knn_both
 cm_knn
 ```
 
