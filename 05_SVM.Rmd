@@ -8,3 +8,9 @@ output:
     toc_depth: 3
 ---
 
+
+```{r}
+song_test <- readRDS("rds/song_test.rds")
+song_train <- readRDS("rds/song_train.rds")
+```
+
