@@ -7,4 +7,36 @@ output:
     toc_float: true
     toc_depth: 3
 ---
+## Load in Data & Libraries
+```{r}
+# Neuralnet and Caret libraries loaded
+library(neuralnet)
+library(caret)
 
+# Loading in Training and testing data from RDS
+train_data <- readRDS("rds/song_train.rds")
+test_data <- readRDS("rds/song_test.rds")
+
+# Initial visualizations of the data
+str(train_data)
+summary(train_data)
+```
+
+## Build Baseline ANN
+```{r, cache=TRUE}
+ann_model <- neuralnet(hit ~ .,
+                       data = train_data,
+                       hidden = 1,
+                       linear.output = FALSE,
+                       threshold = 0.05,
+                       rep = 5,
+                       stepmax = 1e8,
+                       lifesign = "full")
+
+# Find the integer index of the lowest-error repetition
+best_rep <- which.min(ann_model$result.matrix["error", ])
+
+p <- predict(ann_model, test_data, rep = best_rep)
+confusionMatrix(factor(ifelse(p[, ncol(p)] > 0.5, 1, 0), levels = c(0, 1)), factor(test_data$hit, levels = c(0, 1)), positive = "1")
+```
+The above confusion matrix is roughly 90% accurate, which is a solid starting point.
