@@ -99,6 +99,9 @@ saveRDS(song_test, "rds/song_test.rds")
 # normalized versions
 saveRDS(song_train_norm, "rds/song_train_norm.rds")
 saveRDS(song_test_norm, "rds/song_test_norm.rds")
+
+# full data set
+saveRDS(songs, "rds/song_longevity.rds")
 ```
 
 

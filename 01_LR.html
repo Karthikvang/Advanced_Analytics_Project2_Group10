@@ -1653,1030 +1653,35 @@ lr &lt;- glm(hit ~ ., data = song_train, family = &quot;binomial&quot;)</code></
 ## 
 ## Number of Fisher Scoring iterations: 9</code></pre>
 <pre class="r"><code># kitchen sink model, incorporating interaction effects and non linear relationships
-giantkitchensink &lt;- glm(hit ~ . + tiktok_virality * editorial_playlist
-                        + genrerock * energy
-                        + genrernb * energy
-                        + genrepop * energy
-                        + genrelatin * energy
-                        + genreindie * energy
-                        + genrehiphop * energy
-                        + genreedm * energy
-                        + playlist_adds_first_month * editorial_playlist
-                        + playlist_adds_first_month * tiktok_virality
-                        + artist_prior_monthly_listeners * featured_artist
-                        + marketing_budget * label_tiermajor
-                        + marketing_budget * label_tierindie_label
-                        + log(artist_prior_monthly_listeners)
-                        + I(playlist_adds_first_month^2)
-                        + I(tiktok_virality^2), data = song_train, family = &quot;binomial&quot;)</code></pre>
+# giantkitchensink &lt;- glm(hit ~ . + tiktok_virality * editorial_playlist
+#                         + genrerock * energy
+#                         + genrernb * energy
+#                         + genrepop * energy
+#                         + genrelatin * energy
+#                         + genreindie * energy
+#                         + genrehiphop * energy
+#                         + genreedm * energy
+#                         + playlist_adds_first_month * editorial_playlist
+#                         + playlist_adds_first_month * tiktok_virality
+#                         + artist_prior_monthly_listeners * featured_artist
+#                         + marketing_budget * label_tiermajor
+#                         + marketing_budget * label_tierindie_label
+#                         + log(artist_prior_monthly_listeners)
+#                         + I(playlist_adds_first_month^2)
+#                         + I(tiktok_virality^2), data = song_train, family = &quot;binomial&quot;)
+
+# use the step model to find the most significant interaction effects and non linear relationships
+#final_model &lt;- step(giantkitchensink, direction = &quot;backward&quot;)
+
+final_model &lt;- glm(hit ~ genreedm + genreindie + genrelatin + energy + instrumentalness + 
+     label_tierindie_label + label_tiermajor + marketing_budget + 
+     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
+     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
+     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
+     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
+     genrelatin:energy + playlist_adds_first_month:editorial_playlist + 
+     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget, data = song_train, family = &quot;binomial&quot;)</code></pre>
 <pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre class="r"><code># use the step model to find the most significant interaction effects and non linear relationships
-final_model &lt;- step(giantkitchensink, direction = &quot;backward&quot;)</code></pre>
-<pre><code>## Start:  AIC=5137.05
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + valence + danceability + 
-##     acousticness + instrumentalness + tempo_bpm + song_length_sec + 
-##     label_tierindie_label + label_tiermajor + marketing_budget + 
-##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
-##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
-##     halflife_days + slow_burner + tiktok_virality * editorial_playlist + 
-##     genrerock * energy + genrernb * energy + genrepop * energy + 
-##     genrelatin * energy + genreindie * energy + genrehiphop * 
-##     energy + genreedm * energy + playlist_adds_first_month * 
-##     editorial_playlist + playlist_adds_first_month * tiktok_virality + 
-##     artist_prior_monthly_listeners * featured_artist + marketing_budget * 
-##     label_tiermajor + marketing_budget * label_tierindie_label + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     I(tiktok_virality^2)</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - label_tierindie_label:marketing_budget          1   5053.0 5135.0
-## - tempo_bpm                                       1   5053.0 5135.0
-## - valence                                         1   5053.1 5135.1
-## - danceability                                    1   5053.1 5135.1
-## - I(tiktok_virality^2)                            1   5053.1 5135.1
-## - song_length_sec                                 1   5053.2 5135.2
-## - genrepop:energy                                 1   5053.6 5135.6
-## - genrernb:energy                                 1   5053.8 5135.8
-## - playlist_adds_first_month:tiktok_virality       1   5054.1 5136.1
-## - acousticness                                    1   5054.3 5136.3
-## - genrerock:energy                                1   5054.4 5136.4
-## - genreindie:energy                               1   5054.6 5136.6
-## - label_tiermajor:marketing_budget                1   5054.9 5136.9
-## &lt;none&gt;                                                5053.0 5137.0
-## - genreedm:energy                                 1   5055.4 5137.4
-## - instrumentalness                                1   5055.6 5137.6
-## - artist_prior_monthly_listeners:featured_artist  1   5056.1 5138.1
-## - genrehiphop:energy                              1   5056.2 5138.2
-## - I(playlist_adds_first_month^2)                  1   5057.2 5139.2
-## - playlist_adds_first_month:editorial_playlist    1   5057.4 5139.4
-## - genrelatin:energy                               1   5057.9 5139.9
-## - slow_burner                                     1   5061.5 5143.5
-## - editorial_playlist:tiktok_virality              1   5065.2 5147.2
-## - log(artist_prior_monthly_listeners)             1   5073.2 5155.2
-## - halflife_days                                   1   5586.7 5668.7
-## - first_month_streams                             1   9370.9 9452.9</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5135.05
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + valence + danceability + 
-##     acousticness + instrumentalness + tempo_bpm + song_length_sec + 
-##     label_tierindie_label + label_tiermajor + marketing_budget + 
-##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
-##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
-##     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + I(tiktok_virality^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrepop:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - tempo_bpm                                       1   5053.0 5133.0
-## - valence                                         1   5053.1 5133.1
-## - danceability                                    1   5053.1 5133.1
-## - I(tiktok_virality^2)                            1   5053.1 5133.1
-## - song_length_sec                                 1   5053.2 5133.2
-## - genrepop:energy                                 1   5053.6 5133.6
-## - genrernb:energy                                 1   5053.8 5133.8
-## - playlist_adds_first_month:tiktok_virality       1   5054.1 5134.1
-## - acousticness                                    1   5054.3 5134.3
-## - genrerock:energy                                1   5054.4 5134.4
-## - genreindie:energy                               1   5054.7 5134.7
-## &lt;none&gt;                                                5053.0 5135.0
-## - genreedm:energy                                 1   5055.4 5135.4
-## - instrumentalness                                1   5055.6 5135.6
-## - label_tiermajor:marketing_budget                1   5055.6 5135.6
-## - artist_prior_monthly_listeners:featured_artist  1   5056.1 5136.1
-## - genrehiphop:energy                              1   5056.3 5136.3
-## - I(playlist_adds_first_month^2)                  1   5057.2 5137.2
-## - playlist_adds_first_month:editorial_playlist    1   5057.4 5137.4
-## - genrelatin:energy                               1   5057.9 5137.9
-## - label_tierindie_label                           1   5059.1 5139.1
-## - slow_burner                                     1   5061.5 5141.5
-## - editorial_playlist:tiktok_virality              1   5065.3 5145.3
-## - log(artist_prior_monthly_listeners)             1   5073.2 5153.2
-## - halflife_days                                   1   5586.7 5666.7
-## - first_month_streams                             1   9371.0 9451.0</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5133.05
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + valence + danceability + 
-##     acousticness + instrumentalness + song_length_sec + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     I(tiktok_virality^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrepop:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - valence                                         1   5053.1 5131.1
-## - danceability                                    1   5053.1 5131.1
-## - I(tiktok_virality^2)                            1   5053.1 5131.1
-## - song_length_sec                                 1   5053.2 5131.2
-## - genrepop:energy                                 1   5053.6 5131.6
-## - genrernb:energy                                 1   5053.8 5131.8
-## - playlist_adds_first_month:tiktok_virality       1   5054.1 5132.1
-## - acousticness                                    1   5054.3 5132.3
-## - genrerock:energy                                1   5054.4 5132.4
-## - genreindie:energy                               1   5054.7 5132.7
-## &lt;none&gt;                                                5053.0 5133.0
-## - genreedm:energy                                 1   5055.4 5133.4
-## - instrumentalness                                1   5055.6 5133.6
-## - label_tiermajor:marketing_budget                1   5055.6 5133.6
-## - artist_prior_monthly_listeners:featured_artist  1   5056.1 5134.1
-## - genrehiphop:energy                              1   5056.3 5134.3
-## - I(playlist_adds_first_month^2)                  1   5057.2 5135.2
-## - playlist_adds_first_month:editorial_playlist    1   5057.4 5135.4
-## - genrelatin:energy                               1   5057.9 5135.9
-## - label_tierindie_label                           1   5059.1 5137.1
-## - slow_burner                                     1   5061.5 5139.5
-## - editorial_playlist:tiktok_virality              1   5065.3 5143.3
-## - log(artist_prior_monthly_listeners)             1   5073.2 5151.2
-## - halflife_days                                   1   5586.9 5664.9
-## - first_month_streams                             1   9371.3 9449.3</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5131.12
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + danceability + acousticness + 
-##     instrumentalness + song_length_sec + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     I(tiktok_virality^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrepop:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - danceability                                    1   5053.2 5129.2
-## - I(tiktok_virality^2)                            1   5053.2 5129.2
-## - song_length_sec                                 1   5053.3 5129.3
-## - genrepop:energy                                 1   5053.6 5129.6
-## - genrernb:energy                                 1   5053.8 5129.8
-## - playlist_adds_first_month:tiktok_virality       1   5054.2 5130.2
-## - acousticness                                    1   5054.3 5130.3
-## - genrerock:energy                                1   5054.5 5130.5
-## - genreindie:energy                               1   5054.7 5130.7
-## &lt;none&gt;                                                5053.1 5131.1
-## - genreedm:energy                                 1   5055.5 5131.5
-## - instrumentalness                                1   5055.7 5131.7
-## - label_tiermajor:marketing_budget                1   5055.7 5131.7
-## - artist_prior_monthly_listeners:featured_artist  1   5056.2 5132.2
-## - genrehiphop:energy                              1   5056.3 5132.3
-## - I(playlist_adds_first_month^2)                  1   5057.3 5133.3
-## - playlist_adds_first_month:editorial_playlist    1   5057.5 5133.5
-## - genrelatin:energy                               1   5058.0 5134.0
-## - label_tierindie_label                           1   5059.1 5135.1
-## - slow_burner                                     1   5061.5 5137.5
-## - editorial_playlist:tiktok_virality              1   5065.4 5141.4
-## - log(artist_prior_monthly_listeners)             1   5073.3 5149.3
-## - halflife_days                                   1   5587.2 5663.2
-## - first_month_streams                             1   9371.5 9447.5</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5129.2
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + acousticness + instrumentalness + 
-##     song_length_sec + label_tierindie_label + label_tiermajor + 
-##     marketing_budget + playlist_adds_first_month + editorial_playlist + 
-##     tiktok_virality + artist_prior_monthly_listeners + featured_artist + 
-##     first_month_streams + halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + I(tiktok_virality^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrepop:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - I(tiktok_virality^2)                            1   5053.3 5127.3
-## - song_length_sec                                 1   5053.4 5127.4
-## - genrepop:energy                                 1   5053.7 5127.7
-## - genrernb:energy                                 1   5053.9 5127.9
-## - playlist_adds_first_month:tiktok_virality       1   5054.2 5128.2
-## - acousticness                                    1   5054.4 5128.4
-## - genrerock:energy                                1   5054.5 5128.5
-## - genreindie:energy                               1   5054.8 5128.8
-## &lt;none&gt;                                                5053.2 5129.2
-## - genreedm:energy                                 1   5055.6 5129.6
-## - instrumentalness                                1   5055.8 5129.8
-## - label_tiermajor:marketing_budget                1   5055.8 5129.8
-## - artist_prior_monthly_listeners:featured_artist  1   5056.3 5130.3
-## - genrehiphop:energy                              1   5056.4 5130.4
-## - I(playlist_adds_first_month^2)                  1   5057.4 5131.4
-## - playlist_adds_first_month:editorial_playlist    1   5057.6 5131.6
-## - genrelatin:energy                               1   5058.0 5132.0
-## - label_tierindie_label                           1   5059.2 5133.2
-## - slow_burner                                     1   5061.6 5135.6
-## - editorial_playlist:tiktok_virality              1   5065.4 5139.4
-## - log(artist_prior_monthly_listeners)             1   5073.3 5147.3
-## - halflife_days                                   1   5587.2 5661.2
-## - first_month_streams                             1   9371.7 9445.7</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5127.28
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + acousticness + instrumentalness + 
-##     song_length_sec + label_tierindie_label + label_tiermajor + 
-##     marketing_budget + playlist_adds_first_month + editorial_playlist + 
-##     tiktok_virality + artist_prior_monthly_listeners + featured_artist + 
-##     first_month_streams + halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrepop:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - song_length_sec                                 1   5053.5 5125.5
-## - genrepop:energy                                 1   5053.8 5125.8
-## - genrernb:energy                                 1   5054.0 5126.0
-## - playlist_adds_first_month:tiktok_virality       1   5054.2 5126.2
-## - acousticness                                    1   5054.5 5126.5
-## - genrerock:energy                                1   5054.6 5126.6
-## - genreindie:energy                               1   5054.9 5126.9
-## &lt;none&gt;                                                5053.3 5127.3
-## - genreedm:energy                                 1   5055.6 5127.6
-## - instrumentalness                                1   5055.8 5127.8
-## - label_tiermajor:marketing_budget                1   5055.9 5127.9
-## - artist_prior_monthly_listeners:featured_artist  1   5056.4 5128.4
-## - genrehiphop:energy                              1   5056.5 5128.5
-## - I(playlist_adds_first_month^2)                  1   5057.5 5129.5
-## - playlist_adds_first_month:editorial_playlist    1   5057.6 5129.6
-## - genrelatin:energy                               1   5058.1 5130.1
-## - label_tierindie_label                           1   5059.3 5131.3
-## - slow_burner                                     1   5061.7 5133.7
-## - editorial_playlist:tiktok_virality              1   5065.8 5137.8
-## - log(artist_prior_monthly_listeners)             1   5073.5 5145.5
-## - halflife_days                                   1   5587.2 5659.2
-## - first_month_streams                             1   9371.9 9443.9</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5125.45
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + acousticness + instrumentalness + 
-##     label_tierindie_label + label_tiermajor + marketing_budget + 
-##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
-##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
-##     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrepop:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrepop:energy                                 1   5054.0 5124.0
-## - genrernb:energy                                 1   5054.1 5124.1
-## - playlist_adds_first_month:tiktok_virality       1   5054.4 5124.4
-## - acousticness                                    1   5054.6 5124.6
-## - genrerock:energy                                1   5054.8 5124.8
-## - genreindie:energy                               1   5055.0 5125.0
-## &lt;none&gt;                                                5053.5 5125.5
-## - genreedm:energy                                 1   5055.8 5125.8
-## - instrumentalness                                1   5056.0 5126.0
-## - label_tiermajor:marketing_budget                1   5056.0 5126.0
-## - artist_prior_monthly_listeners:featured_artist  1   5056.6 5126.6
-## - genrehiphop:energy                              1   5056.7 5126.7
-## - I(playlist_adds_first_month^2)                  1   5057.6 5127.6
-## - playlist_adds_first_month:editorial_playlist    1   5057.8 5127.8
-## - genrelatin:energy                               1   5058.3 5128.3
-## - label_tierindie_label                           1   5059.5 5129.5
-## - slow_burner                                     1   5061.8 5131.8
-## - editorial_playlist:tiktok_virality              1   5065.9 5135.9
-## - log(artist_prior_monthly_listeners)             1   5073.6 5143.6
-## - halflife_days                                   1   5587.5 5657.5
-## - first_month_streams                             1   9372.6 9442.6</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5123.96
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + acousticness + instrumentalness + 
-##     label_tierindie_label + label_tiermajor + marketing_budget + 
-##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
-##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
-##     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrernb:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrernb:energy                                 1   5054.2 5122.2
-## - genrepop                                        1   5054.7 5122.7
-## - genrerock:energy                                1   5054.8 5122.8
-## - playlist_adds_first_month:tiktok_virality       1   5054.9 5122.9
-## - genreindie:energy                               1   5055.1 5123.1
-## - acousticness                                    1   5055.1 5123.1
-## &lt;none&gt;                                                5054.0 5124.0
-## - genreedm:energy                                 1   5056.0 5124.0
-## - instrumentalness                                1   5056.5 5124.5
-## - label_tiermajor:marketing_budget                1   5056.5 5124.5
-## - artist_prior_monthly_listeners:featured_artist  1   5057.0 5125.0
-## - genrehiphop:energy                              1   5057.2 5125.2
-## - I(playlist_adds_first_month^2)                  1   5058.1 5126.1
-## - playlist_adds_first_month:editorial_playlist    1   5058.2 5126.2
-## - genrelatin:energy                               1   5059.2 5127.2
-## - label_tierindie_label                           1   5060.0 5128.0
-## - slow_burner                                     1   5062.4 5130.4
-## - editorial_playlist:tiktok_virality              1   5066.6 5134.6
-## - log(artist_prior_monthly_listeners)             1   5074.1 5142.1
-## - halflife_days                                   1   5588.1 5656.1
-## - first_month_streams                             1   9373.7 9441.7</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5122.22
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrernb + genrerock + energy + acousticness + instrumentalness + 
-##     label_tierindie_label + label_tiermajor + marketing_budget + 
-##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
-##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
-##     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrerock:energy + genrelatin:energy + genreindie:energy + 
-##     genrehiphop:energy + genreedm:energy + playlist_adds_first_month:editorial_playlist + 
-##     playlist_adds_first_month:tiktok_virality + artist_prior_monthly_listeners:featured_artist + 
-##     label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrernb                                        1   5054.2 5120.2
-## - genrerock:energy                                1   5054.9 5120.9
-## - genrepop                                        1   5054.9 5120.9
-## - genreindie:energy                               1   5055.1 5121.1
-## - playlist_adds_first_month:tiktok_virality       1   5055.2 5121.2
-## - acousticness                                    1   5055.4 5121.4
-## - genreedm:energy                                 1   5056.0 5122.0
-## &lt;none&gt;                                                5054.2 5122.2
-## - instrumentalness                                1   5056.7 5122.7
-## - label_tiermajor:marketing_budget                1   5056.8 5122.8
-## - artist_prior_monthly_listeners:featured_artist  1   5057.2 5123.2
-## - genrehiphop:energy                              1   5057.2 5123.2
-## - I(playlist_adds_first_month^2)                  1   5058.4 5124.4
-## - playlist_adds_first_month:editorial_playlist    1   5058.5 5124.5
-## - genrelatin:energy                               1   5059.2 5125.2
-## - label_tierindie_label                           1   5060.3 5126.3
-## - slow_burner                                     1   5062.6 5128.6
-## - editorial_playlist:tiktok_virality              1   5066.8 5132.8
-## - log(artist_prior_monthly_listeners)             1   5074.3 5140.3
-## - halflife_days                                   1   5589.1 5655.1
-## - first_month_streams                             1   9374.2 9440.2</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5120.22
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrerock + energy + acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrerock:energy + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrerock:energy                                1   5054.9 5118.9
-## - genreindie:energy                               1   5055.1 5119.1
-## - playlist_adds_first_month:tiktok_virality       1   5055.2 5119.2
-## - acousticness                                    1   5055.4 5119.4
-## - genrepop                                        1   5055.5 5119.5
-## - genreedm:energy                                 1   5056.0 5120.0
-## &lt;none&gt;                                                5054.2 5120.2
-## - instrumentalness                                1   5056.7 5120.7
-## - label_tiermajor:marketing_budget                1   5056.8 5120.8
-## - artist_prior_monthly_listeners:featured_artist  1   5057.2 5121.2
-## - genrehiphop:energy                              1   5057.2 5121.2
-## - I(playlist_adds_first_month^2)                  1   5058.4 5122.4
-## - playlist_adds_first_month:editorial_playlist    1   5058.5 5122.5
-## - genrelatin:energy                               1   5059.2 5123.2
-## - label_tierindie_label                           1   5060.3 5124.3
-## - slow_burner                                     1   5062.6 5126.6
-## - editorial_playlist:tiktok_virality              1   5066.8 5130.8
-## - log(artist_prior_monthly_listeners)             1   5074.3 5138.3
-## - halflife_days                                   1   5589.3 5653.3
-## - first_month_streams                             1   9374.2 9438.2</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5118.88
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     genrerock + energy + acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrerock                                       1   5055.1 5117.1
-## - genreindie:energy                               1   5055.5 5117.5
-## - playlist_adds_first_month:tiktok_virality       1   5055.9 5117.9
-## - acousticness                                    1   5056.1 5118.1
-## - genrepop                                        1   5056.1 5118.1
-## - genreedm:energy                                 1   5056.3 5118.3
-## &lt;none&gt;                                                5054.9 5118.9
-## - genrehiphop:energy                              1   5057.4 5119.4
-## - instrumentalness                                1   5057.4 5119.4
-## - label_tiermajor:marketing_budget                1   5057.5 5119.5
-## - artist_prior_monthly_listeners:featured_artist  1   5057.9 5119.9
-## - I(playlist_adds_first_month^2)                  1   5059.1 5121.1
-## - playlist_adds_first_month:editorial_playlist    1   5059.1 5121.1
-## - genrelatin:energy                               1   5059.3 5121.3
-## - label_tierindie_label                           1   5061.0 5123.0
-## - slow_burner                                     1   5063.2 5125.2
-## - editorial_playlist:tiktok_virality              1   5067.6 5129.6
-## - log(artist_prior_monthly_listeners)             1   5074.8 5136.8
-## - halflife_days                                   1   5590.6 5652.6
-## - first_month_streams                             1   9376.0 9438.0</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5117.13
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     energy + acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrelatin:energy + 
-##     genreindie:energy + genrehiphop:energy + genreedm:energy + 
-##     playlist_adds_first_month:editorial_playlist + playlist_adds_first_month:tiktok_virality + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genreindie:energy                               1   5055.8 5115.8
-## - genrepop                                        1   5056.1 5116.1
-## - playlist_adds_first_month:tiktok_virality       1   5056.1 5116.1
-## - acousticness                                    1   5056.4 5116.4
-## - genreedm:energy                                 1   5056.5 5116.5
-## &lt;none&gt;                                                5055.1 5117.1
-## - genrehiphop:energy                              1   5057.6 5117.6
-## - instrumentalness                                1   5057.6 5117.6
-## - label_tiermajor:marketing_budget                1   5057.7 5117.7
-## - artist_prior_monthly_listeners:featured_artist  1   5058.2 5118.2
-## - I(playlist_adds_first_month^2)                  1   5059.3 5119.3
-## - playlist_adds_first_month:editorial_playlist    1   5059.3 5119.3
-## - genrelatin:energy                               1   5059.5 5119.5
-## - label_tierindie_label                           1   5061.3 5121.3
-## - slow_burner                                     1   5063.5 5123.5
-## - editorial_playlist:tiktok_virality              1   5067.8 5127.8
-## - log(artist_prior_monthly_listeners)             1   5075.0 5135.0
-## - halflife_days                                   1   5590.7 5650.7
-## - first_month_streams                             1   9376.6 9436.6</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5115.77
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     energy + acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrelatin:energy + 
-##     genrehiphop:energy + genreedm:energy + playlist_adds_first_month:editorial_playlist + 
-##     playlist_adds_first_month:tiktok_virality + artist_prior_monthly_listeners:featured_artist + 
-##     label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - playlist_adds_first_month:tiktok_virality       1   5056.8 5114.8
-## - genrepop                                        1   5056.8 5114.8
-## - genreedm:energy                                 1   5056.9 5114.9
-## - acousticness                                    1   5057.0 5115.0
-## &lt;none&gt;                                                5055.8 5115.8
-## - genrehiphop:energy                              1   5057.8 5115.8
-## - instrumentalness                                1   5058.2 5116.2
-## - label_tiermajor:marketing_budget                1   5058.5 5116.5
-## - genreindie                                      1   5058.5 5116.5
-## - artist_prior_monthly_listeners:featured_artist  1   5058.8 5116.8
-## - genrelatin:energy                               1   5059.7 5117.7
-## - playlist_adds_first_month:editorial_playlist    1   5059.9 5117.9
-## - I(playlist_adds_first_month^2)                  1   5060.0 5118.0
-## - label_tierindie_label                           1   5062.0 5120.0
-## - slow_burner                                     1   5064.2 5122.2
-## - editorial_playlist:tiktok_virality              1   5068.3 5126.3
-## - log(artist_prior_monthly_listeners)             1   5075.6 5133.6
-## - halflife_days                                   1   5592.5 5650.5
-## - first_month_streams                             1   9376.6 9434.6</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5114.75
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + genrepop + 
-##     energy + acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrelatin:energy + 
-##     genrehiphop:energy + genreedm:energy + playlist_adds_first_month:editorial_playlist + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrepop                                        1   5057.8 5113.8
-## - genreedm:energy                                 1   5057.8 5113.8
-## - acousticness                                    1   5058.0 5114.0
-## - genrehiphop:energy                              1   5058.7 5114.7
-## &lt;none&gt;                                                5056.8 5114.8
-## - instrumentalness                                1   5059.3 5115.3
-## - label_tiermajor:marketing_budget                1   5059.4 5115.4
-## - genreindie                                      1   5059.4 5115.4
-## - artist_prior_monthly_listeners:featured_artist  1   5059.8 5115.8
-## - I(playlist_adds_first_month^2)                  1   5060.4 5116.4
-## - playlist_adds_first_month:editorial_playlist    1   5060.4 5116.4
-## - genrelatin:energy                               1   5060.6 5116.6
-## - label_tierindie_label                           1   5063.0 5119.0
-## - slow_burner                                     1   5065.3 5121.3
-## - editorial_playlist:tiktok_virality              1   5068.8 5124.8
-## - log(artist_prior_monthly_listeners)             1   5076.8 5132.8
-## - halflife_days                                   1   5593.2 5649.2
-## - first_month_streams                             1   9381.8 9437.8</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5113.77
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + energy + 
-##     acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrelatin:energy + 
-##     genrehiphop:energy + genreedm:energy + playlist_adds_first_month:editorial_playlist + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genreedm:energy                                 1   5058.8 5112.8
-## - acousticness                                    1   5058.9 5112.9
-## - genrehiphop:energy                              1   5059.8 5113.8
-## &lt;none&gt;                                                5057.8 5113.8
-## - instrumentalness                                1   5060.3 5114.3
-## - label_tiermajor:marketing_budget                1   5060.5 5114.5
-## - artist_prior_monthly_listeners:featured_artist  1   5060.8 5114.8
-## - I(playlist_adds_first_month^2)                  1   5061.4 5115.4
-## - playlist_adds_first_month:editorial_playlist    1   5061.5 5115.5
-## - genrelatin:energy                               1   5061.6 5115.6
-## - genreindie                                      1   5062.2 5116.2
-## - label_tierindie_label                           1   5063.9 5117.9
-## - slow_burner                                     1   5066.4 5120.4
-## - editorial_playlist:tiktok_virality              1   5069.9 5123.9
-## - log(artist_prior_monthly_listeners)             1   5077.7 5131.7
-## - halflife_days                                   1   5593.7 5647.7
-## - first_month_streams                             1   9382.9 9436.9</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5112.85
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + energy + 
-##     acousticness + instrumentalness + label_tierindie_label + 
-##     label_tiermajor + marketing_budget + playlist_adds_first_month + 
-##     editorial_playlist + tiktok_virality + artist_prior_monthly_listeners + 
-##     featured_artist + first_month_streams + halflife_days + slow_burner + 
-##     log(artist_prior_monthly_listeners) + I(playlist_adds_first_month^2) + 
-##     editorial_playlist:tiktok_virality + genrelatin:energy + 
-##     genrehiphop:energy + playlist_adds_first_month:editorial_playlist + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - acousticness                                    1   5060.0 5112.0
-## - genrehiphop:energy                              1   5060.3 5112.3
-## &lt;none&gt;                                                5058.8 5112.8
-## - genreedm                                        1   5061.0 5113.0
-## - instrumentalness                                1   5061.3 5113.3
-## - label_tiermajor:marketing_budget                1   5061.6 5113.6
-## - artist_prior_monthly_listeners:featured_artist  1   5061.8 5113.8
-## - genrelatin:energy                               1   5062.1 5114.1
-## - I(playlist_adds_first_month^2)                  1   5062.5 5114.5
-## - playlist_adds_first_month:editorial_playlist    1   5062.6 5114.6
-## - genreindie                                      1   5063.2 5115.2
-## - label_tierindie_label                           1   5065.0 5117.0
-## - slow_burner                                     1   5067.5 5119.5
-## - editorial_playlist:tiktok_virality              1   5071.1 5123.1
-## - log(artist_prior_monthly_listeners)             1   5078.8 5130.8
-## - halflife_days                                   1   5595.0 5647.0
-## - first_month_streams                             1   9383.5 9435.5</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5112.03
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + energy + 
-##     instrumentalness + label_tierindie_label + label_tiermajor + 
-##     marketing_budget + playlist_adds_first_month + editorial_playlist + 
-##     tiktok_virality + artist_prior_monthly_listeners + featured_artist + 
-##     first_month_streams + halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrelatin:energy + genrehiphop:energy + playlist_adds_first_month:editorial_playlist + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrehiphop:energy                              1   5061.5 5111.5
-## &lt;none&gt;                                                5060.0 5112.0
-## - genreedm                                        1   5062.2 5112.2
-## - instrumentalness                                1   5062.5 5112.5
-## - label_tiermajor:marketing_budget                1   5062.8 5112.8
-## - artist_prior_monthly_listeners:featured_artist  1   5063.0 5113.0
-## - genrelatin:energy                               1   5063.2 5113.2
-## - I(playlist_adds_first_month^2)                  1   5063.6 5113.6
-## - playlist_adds_first_month:editorial_playlist    1   5063.7 5113.7
-## - genreindie                                      1   5064.4 5114.4
-## - label_tierindie_label                           1   5066.2 5116.2
-## - slow_burner                                     1   5068.8 5118.8
-## - editorial_playlist:tiktok_virality              1   5072.7 5122.7
-## - log(artist_prior_monthly_listeners)             1   5080.0 5130.0
-## - halflife_days                                   1   5596.7 5646.7
-## - first_month_streams                             1   9384.3 9434.3</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5111.5
-## hit ~ genreedm + genrehiphop + genreindie + genrelatin + energy + 
-##     instrumentalness + label_tierindie_label + label_tiermajor + 
-##     marketing_budget + playlist_adds_first_month + editorial_playlist + 
-##     tiktok_virality + artist_prior_monthly_listeners + featured_artist + 
-##     first_month_streams + halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrelatin:energy + playlist_adds_first_month:editorial_playlist + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## - genrehiphop                                     1   5061.6 5109.6
-## &lt;none&gt;                                                5061.5 5111.5
-## - genreedm                                        1   5063.7 5111.7
-## - instrumentalness                                1   5064.0 5112.0
-## - genrelatin:energy                               1   5064.0 5112.0
-## - label_tiermajor:marketing_budget                1   5064.2 5112.2
-## - artist_prior_monthly_listeners:featured_artist  1   5064.5 5112.5
-## - I(playlist_adds_first_month^2)                  1   5065.0 5113.0
-## - playlist_adds_first_month:editorial_playlist    1   5065.2 5113.2
-## - genreindie                                      1   5065.8 5113.8
-## - label_tierindie_label                           1   5067.5 5115.5
-## - slow_burner                                     1   5070.4 5118.4
-## - editorial_playlist:tiktok_virality              1   5074.3 5122.3
-## - log(artist_prior_monthly_listeners)             1   5081.5 5129.5
-## - halflife_days                                   1   5597.1 5645.1
-## - first_month_streams                             1   9384.7 9432.7</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>## 
-## Step:  AIC=5109.62
-## hit ~ genreedm + genreindie + genrelatin + energy + instrumentalness + 
-##     label_tierindie_label + label_tiermajor + marketing_budget + 
-##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
-##     artist_prior_monthly_listeners + featured_artist + first_month_streams + 
-##     halflife_days + slow_burner + log(artist_prior_monthly_listeners) + 
-##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
-##     genrelatin:energy + playlist_adds_first_month:editorial_playlist + 
-##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
-## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
-<pre><code>##                                                  Df Deviance    AIC
-## &lt;none&gt;                                                5061.6 5109.6
-## - genreedm                                        1   5063.7 5109.7
-## - instrumentalness                                1   5064.1 5110.1
-## - genrelatin:energy                               1   5064.1 5110.1
-## - label_tiermajor:marketing_budget                1   5064.4 5110.4
-## - artist_prior_monthly_listeners:featured_artist  1   5064.6 5110.6
-## - I(playlist_adds_first_month^2)                  1   5065.1 5111.1
-## - playlist_adds_first_month:editorial_playlist    1   5065.3 5111.3
-## - genreindie                                      1   5066.5 5112.5
-## - label_tierindie_label                           1   5067.7 5113.7
-## - slow_burner                                     1   5070.6 5116.6
-## - editorial_playlist:tiktok_virality              1   5074.4 5120.4
-## - log(artist_prior_monthly_listeners)             1   5081.7 5127.7
-## - halflife_days                                   1   5597.2 5643.2
-## - first_month_streams                             1   9384.7 9430.7</code></pre>
 <pre class="r"><code># hit ~ genreedm + genreindie + genrelatin + energy + instrumentalness + 
 ##     label_tierindie_label + label_tiermajor + marketing_budget + 
 ##     playlist_adds_first_month + editorial_playlist + tiktok_virality + 
@@ -2685,8 +1690,10 @@ final_model &lt;- step(giantkitchensink, direction = &quot;backward&quot;)</code
 ##     I(playlist_adds_first_month^2) + editorial_playlist:tiktok_virality + 
 ##     genrelatin:energy + playlist_adds_first_month:editorial_playlist + 
 ##     artist_prior_monthly_listeners:featured_artist + label_tiermajor:marketing_budget</code></pre>
-<p>log(artist_prior_monthly_listeners) - because skewed ### Predict test
-data</p>
+<p>log(artist_prior_monthly_listeners) - because skewed</p>
+</div>
+<div id="predict-test-data" class="section level3">
+<h3>Predict test data</h3>
 <pre class="r"><code># predict test dataset with model
 song_lm_predict &lt;- predict(final_model, song_test, type = &quot;response&quot;)
 summary(song_lm_predict)</code></pre>
@@ -2705,7 +1712,139 @@ summary(song_lm_bin)</code></pre>
 <pre class="r"><code>library(caret)</code></pre>
 <pre><code>## Loading required package: ggplot2</code></pre>
 <pre><code>## Loading required package: lattice</code></pre>
-<pre class="r"><code>cm_lr &lt;- confusionMatrix(as.factor(song_lm_bin), as.factor(song_test$hit), positive = &quot;1&quot;)</code></pre>
+<pre class="r"><code>first_cm_lr &lt;- confusionMatrix(as.factor(song_lm_bin), as.factor(song_test$hit), positive = &quot;1&quot;)
+first_cm_lr</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction     0     1
+##          0 19933   733
+##          1   294  1540
+##                                          
+##                Accuracy : 0.9544         
+##                  95% CI : (0.9515, 0.957)
+##     No Information Rate : 0.899          
+##     P-Value [Acc &gt; NIR] : &lt; 2.2e-16      
+##                                          
+##                   Kappa : 0.7251         
+##                                          
+##  Mcnemar&#39;s Test P-Value : &lt; 2.2e-16      
+##                                          
+##             Sensitivity : 0.67752        
+##             Specificity : 0.98546        
+##          Pos Pred Value : 0.83969        
+##          Neg Pred Value : 0.96453        
+##              Prevalence : 0.10102        
+##          Detection Rate : 0.06844        
+##    Detection Prevalence : 0.08151        
+##       Balanced Accuracy : 0.83149        
+##                                          
+##        &#39;Positive&#39; Class : 1              
+## </code></pre>
+<p>Accuracy : 0.9544, Sensitivity : 0.67752, Specificity : 0.98546</p>
+</div>
+<div id="improving-the-model" class="section level3">
+<h3>Improving the model</h3>
+<div id="stepwise-improvement" class="section level4">
+<h4>Stepwise improvement</h4>
+<pre class="r"><code># # stricter selection in the stepwise regression
+# final_new &lt;- step(giantkitchensink, direction = &quot;backward&quot;, k = log(nrow(song_train)))
+# 
+# # new predictions
+# song_lm_predict_new &lt;- predict(final_new, song_test, type = &quot;response&quot;)
+# song_lm_bin_new &lt;- factor(ifelse(song_lm_predict_new &gt;= 0.5, &quot;1&quot;, &quot;0&quot;), levels = c(&quot;0&quot;, &quot;1&quot;))
+# summary(song_lm_bin_new)
+# 
+# # new confusion matrix
+# second_cm_lr &lt;- confusionMatrix(as.factor(song_lm_bin_new), as.factor(song_test$hit), positive = &quot;1&quot;)
+# second_cm_lr</code></pre>
+<p>No overall improvement: accuracy decreased and sensitivity
+decreased</p>
+</div>
+<div id="testing-different-thresholds" class="section level4">
+<h4>Testing different thresholds</h4>
+<pre class="r"><code># optimizing threshold
+set.seed(12345)
+folds &lt;- sample(rep(1:10, length.out = nrow(song_train)))
+oof &lt;- numeric(nrow(song_train))
+for (f in 1:10) {
+  m &lt;- glm(formula(final_model), data = song_train[folds != f, ], family = binomial)
+  oof[folds == f] &lt;- predict(m, song_train[folds == f, ], type = &quot;response&quot;)
+}</code></pre>
+<pre><code>## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred
+## Warning: glm.fit: fitted probabilities numerically 0 or 1 occurred</code></pre>
+<pre class="r"><code>thr &lt;- seq(0.3, 0.7, by = 0.025)
+res &lt;- t(sapply(thr, function(t) {
+  p  &lt;- factor(ifelse(oof &gt;= t, &quot;1&quot;, &quot;0&quot;), levels = c(&quot;0&quot;, &quot;1&quot;))
+  cm &lt;- confusionMatrix(p, song_train$hit, positive = &quot;1&quot;)
+  c(thr = t, acc = cm$overall[&quot;Accuracy&quot;], sens = cm$byClass[&quot;Sensitivity&quot;],
+    spec = cm$byClass[&quot;Specificity&quot;], kappa = cm$overall[&quot;Kappa&quot;])
+}))
+res</code></pre>
+<pre><code>##         thr acc.Accuracy sens.Sensitivity spec.Specificity kappa.Kappa
+##  [1,] 0.300    0.9563556        0.7925460        0.9743501   0.7581085
+##  [2,] 0.325    0.9561333        0.7750337        0.9760272   0.7533192
+##  [3,] 0.350    0.9562667        0.7575213        0.9780989   0.7500100
+##  [4,] 0.375    0.9566667        0.7444993        0.9799734   0.7488680
+##  [5,] 0.400    0.9568000        0.7314773        0.9815518   0.7464455
+##  [6,] 0.425    0.9564444        0.7166592        0.9827850   0.7412184
+##  [7,] 0.450    0.9560000        0.7018410        0.9839195   0.7354400
+##  [8,] 0.475    0.9552000        0.6847777        0.9849060   0.7272390
+##  [9,] 0.500    0.9544889        0.6699596        0.9857446   0.7198697
+## [10,] 0.525    0.9541333        0.6578357        0.9866818   0.7148027
+## [11,] 0.550    0.9535111        0.6425685        0.9876683   0.7074320
+## [12,] 0.575    0.9533333        0.6322407        0.9886055   0.7035197
+## [13,] 0.600    0.9528000        0.6196677        0.9893948   0.6971132
+## [14,] 0.625    0.9524000        0.6079928        0.9902333   0.6915121
+## [15,] 0.650    0.9519556        0.5958689        0.9910719   0.6854342
+## [16,] 0.675    0.9508000        0.5792546        0.9916145   0.6742187
+## [17,] 0.700    0.9497333        0.5648855        0.9920091   0.6639832</code></pre>
+<p>0.3 is the best threshold as it has the highest kappa</p>
+<pre class="r"><code># best threshold
+best &lt;- res[which.max(res[, 5]), ]
+song_lm_bin_new2 &lt;- factor(ifelse(song_lm_predict &gt;= best[1], &quot;1&quot;, &quot;0&quot;), levels = c(&quot;0&quot;, &quot;1&quot;))
+
+# new confusion matrix
+third_cm_lr &lt;- confusionMatrix(as.factor(song_lm_bin_new2), as.factor(song_test$hit), positive = &quot;1&quot;)
+third_cm_lr</code></pre>
+<pre><code>## Confusion Matrix and Statistics
+## 
+##           Reference
+## Prediction     0     1
+##          0 19695   496
+##          1   532  1777
+##                                          
+##                Accuracy : 0.9543         
+##                  95% CI : (0.9515, 0.957)
+##     No Information Rate : 0.899          
+##     P-Value [Acc &gt; NIR] : &lt;2e-16         
+##                                          
+##                   Kappa : 0.7502         
+##                                          
+##  Mcnemar&#39;s Test P-Value : 0.275          
+##                                          
+##             Sensitivity : 0.78179        
+##             Specificity : 0.97370        
+##          Pos Pred Value : 0.76960        
+##          Neg Pred Value : 0.97543        
+##              Prevalence : 0.10102        
+##          Detection Rate : 0.07898        
+##    Detection Prevalence : 0.10262        
+##       Balanced Accuracy : 0.87774        
+##                                          
+##        &#39;Positive&#39; Class : 1              
+## </code></pre>
+<p>Model improved overall:</p>
+<p>Accuracy : 0.9543, Sensitivity : 0.78179, Specificity : 0.97370</p>
+</div>
 </div>
 <div id="save-to-rds" class="section level3">
 <h3>Save to RDS</h3>
@@ -2713,7 +1852,7 @@ summary(song_lm_bin)</code></pre>
 saveRDS(song_lm_predict, &quot;rds/lm_predict.rds&quot;)
 
 # save confusion matrix to rds
-saveRDS(cm_lr, &quot;rds/cm_lr.rds&quot;)</code></pre>
+saveRDS(third_cm_lr, &quot;rds/cm_lr.rds&quot;)</code></pre>
 </div>
 
 
