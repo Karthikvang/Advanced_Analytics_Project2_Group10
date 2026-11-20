@@ -9,10 +9,77 @@ output:
 ---
 ### Load in Data
 ```{r}
-# get scaled train and test data from rds
-song_train <- readRDS("rds/song_train_norm.rds")
-song_test <- readRDS("rds/song_test_norm.rds")
-str(song_train)
+# get data from rds
+song <- readRDS("rds/song_longevity.rds")
+str(song)
+```
+
+### Generate Audio Profile Clusters and Elbow Curve
+```{r}
+# Focus on audio profile of music
+audio_prof <- c("energy", "valence", "danceability", "acousticness", "instrumentalness", "tempo_bpm", "song_length_sec")
+songs_audio <- song[ ,audio_prof]
+# scale data
+minmax <- function(x) (x - min(x)) / (max(x) - min(x))
+songs_audio <- as.data.frame(lapply(songs_audio, minmax))
+
+# Create Clusters for Kmeans Analysis
+set.seed(12345)
+kmeans_model <- kmeans(songs_audio, centers = 4)
+
+# Create elbow plot to find optimal number of clusters
+wss <- sapply(1:10, function(k) {
+  kmeans(songs_audio, centers = k, nstart = 25, iter.max = 50)$tot.withinss
+})
+
+# plot the elbow plot
+plot(1:10, wss, type = "b", pch = 19,
+     xlab = "Number of clusters (k)",
+     ylab = "Total within-cluster sum of squares",
+     main = "Elbow Plot")
+```
+
+### Audio Profile Clusters
+```{r}
+# Size and success rate of each cluster
+kmeans_model$size     
+
+# cluster means for each variable
+kmeans_model$centers
+```
+
+### Generate Promotion Strategy Profile Clusters and Elbow Curve
+```{r}
+# Focus on promotion strategy of music
+promo <- c("marketing_budget", "playlist_adds_first_month", "editorial_playlist", "tiktok_virality", "artist_prior_monthly_listeners")
+songs_p <- song[ ,promo]
+# scale data
+minmax <- function(x) (x - min(x)) / (max(x) - min(x))
+songs_p <- as.data.frame(lapply(songs_p, minmax))
+
+# Create Clusters for Kmeans Analysis
+set.seed(12345)
+kmeans_model_p <- kmeans(songs_p, centers = 2)
+
+# Create elbow plot to find optimal number of clusters
+wss <- sapply(1:10, function(k) {
+  kmeans(songs_p, centers = k, nstart = 25, iter.max = 50)$tot.withinss
+})
+
+# plot the elbow plot
+plot(1:10, wss, type = "b", pch = 19,
+     xlab = "Number of clusters (k)",
+     ylab = "Total within-cluster sum of squares",
+     main = "Elbow Plot")
+```
+
+### Promo Strategy Clusters
+```{r}
+# Size and success rate of each cluster
+kmeans_model_p$size     
+
+# cluster means for each variable
+kmeans_model_p$centers
 ```
 
 
