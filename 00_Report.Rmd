@@ -1,11 +1,189 @@
 ---
-title: "00_Report"
-authors: "Srikarthik Vangavolu, Darius Lorens, Frederik Nedergaard Madsen, Ellen Ruan"
+title: "Predicting Hit Songs: A Model of Models"
+author: "Srikarthik Vangavolu, Darius Lorens, Frederik Nedergaard Madsen, Ellen Ruan"
+date: "`r Sys.Date()`"
 output:
   html_document:
     toc: true
     toc_float: true
     toc_depth: 3
+    theme: flatly
     code_folding: hide
 ---
 
+<!--
+HOW THIS FILE WORKS (DRAFT)
+Knit THIS file to produce the full group report as one HTML.
+It writes the intro and conclusion itself, and knits each numbered model file
+into the middle (09_Clean_Data first, because it creates the rds/ files the
+models read). Every model file can still be knit on its own.
+
+Lines marked TODO are for the group to fill in or confirm.
+-->
+
+```{r report-setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE)
+
+# Several model files name their first chunk "setup". Allow the duplicate
+# labels so they can all be knitted into this one report.
+options(knitr.duplicate.label = "allow")
+
+# knit_module(): knits one numbered file INTO this report.
+# Each file has its own YAML header (so it can be knit alone); we strip that
+# header off so this report keeps a single title and table of contents.
+# A file that is missing or still empty shows a short placeholder instead.
+knit_module <- function(file) {
+  placeholder <- "*This section is still in progress and will be added when the model is finished.*"
+  if (!file.exists(file)) { cat(placeholder); return(invisible()) }
+  lines    <- readLines(file, warn = FALSE)
+  yaml_end <- which(trimws(lines) == "---")[2]          # line where the YAML header ends
+  body     <- if (is.na(yaml_end)) lines else lines[-(1:yaml_end)]
+  if (!any(nzchar(trimws(body)))) { cat(placeholder); return(invisible()) }
+  out <- knitr::knit_child(text = body, envir = globalenv(), quiet = TRUE)
+  cat(out, sep = "\n")
+}
+
+```
+
+# 1. Introduction and Problem Statement
+
+```{r intro-data}
+raw <- read.csv("song_longevity.csv", stringsAsFactors = TRUE)
+```
+
+## The situation
+
+A record label releases far more songs than it can afford to promote. Marketing budget, playlist pitching and social-media pushes have to be rationed, and most releases never become hits. Our data has `r format(nrow(raw), big.mark = ",")` songs with their audio features (energy, danceability, tempo...), label and marketing information, early streaming and social signals, and whether each song became a hit. The question for this analysis is:
+
+> **Can we accurately predict which songs will become hits?**
+
+## Who this is for
+
+The audience is a record label's **A&R and marketing team**. They decide which new releases get the marketing push. Pushing a song that goes nowhere wastes budget, and failing to back a song that would have been a hit gives up the most valuable outcome the label has. A model that flags the songs most likely to become hits lets the team put its budget behind them.
+
+## How we judge the models
+
+Only `r round(100 * mean(raw$is_hit == 1))`% of songs are hits. A "model" that predicts *no song is ever a hit* is already `r round(100 * mean(raw$is_hit == 0))`% accurate while being useless to the label, so accuracy alone is misleading. We judge every model by **Kappa**, which measures agreement between the predictions and the truth beyond what chance alone would give. Each confusion matrix also reports the two kinds of mistake:
+
+* **False negative (missed hit):** the model says "not a hit", but the song became a hit. The label did not back it.
+* **False positive (false alarm):** the model says "hit", but the song did not become one. The label spent budget on it.
+
+## Approach
+
+All models use the same 50/50 split into training and test songs. We start with K-means clustering to understand the types of songs and promotion strategies in the data. We then build and try to improve six individual models: logistic regression, KNN, an artificial neural network (ANN), a support vector machine (SVM), a decision tree and a random forest. Their predictions then become the inputs to a second-level decision tree: a **stacked model**, or "model of models". The final sections compare all the models and translate the results into dollars for the label.
+
+<!-- TODO (group): several predictors are only known AFTER release
+(first_month_streams, playlist_adds_first_month, halflife_days, slow_burner).
+Decide whether the label is predicting before release or after the first
+month, and say so here. It changes which variables the models may use. -->
+
+# 2. Data Cleaning and Preparation
+
+```{r module-clean, results='asis', echo=FALSE}
+knit_module("09_Clean_Data.Rmd")
+```
+
+# 3. Exploring the Songs: K-means Clustering
+
+```{r module-kmeans, results='asis', echo=FALSE}
+knit_module("02_KMEANS.Rmd")
+```
+
+# 4. Logistic Regression
+
+```{r module-lr, results='asis', echo=FALSE}
+knit_module("01_LR.Rmd")
+```
+
+# 5. K-Nearest Neighbors (KNN)
+
+```{r module-knn, results='asis', echo=FALSE}
+knit_module("03_KNN.Rmd")
+```
+
+# 6. Artificial Neural Network (ANN)
+
+```{r module-ann, results='asis', echo=FALSE}
+knit_module("04_ANN.Rmd")
+```
+
+# 7. Support Vector Machine (SVM)
+
+```{r module-svm, results='asis', echo=FALSE}
+knit_module("05_SVM.Rmd")
+```
+
+# 8. Decision Tree
+
+```{r module-dt, results='asis', echo=FALSE}
+knit_module("06_DT.Rmd")
+```
+
+# 9. Random Forest
+
+```{r module-rf, results='asis', echo=FALSE}
+knit_module("07_RF.Rmd")
+```
+
+# 10. Stacked Model
+
+```{r module-stacked, results='asis', echo=FALSE}
+knit_module("08_STACKED.Rmd")
+```
+
+# 11. Comparing the Models
+
+```{r compare}
+library(caret)
+
+# Each model's final confusion matrix on the test songs. We use its saved rds
+# file when there is one, otherwise the confusion matrix it left in the
+# workspace when its section was knitted above. Unfinished models are skipped.
+models <- data.frame(
+  Model = c("Logistic Regression", "KNN", "ANN", "SVM", "Decision Tree", "Random Forest", "Stacked Model"),
+  file  = c("cm_lr", "cm_knn", "cm_ann", "cm_svm", "cm_dt", "cm_rf", "cm_stacked")
+)
+
+get_cm <- function(name) {
+  path <- file.path("rds", paste0(name, ".rds"))
+  if (file.exists(path)) return(readRDS(path))
+  if (exists(name, envir = globalenv())) return(get(name, envir = globalenv()))
+  NULL
+}
+
+cms <- setNames(lapply(models$file, get_cm), models$Model)
+cms <- cms[!sapply(cms, is.null)]                    # keep only finished models
+
+compare <- do.call(rbind, lapply(names(cms), function(m) {
+  cm <- cms[[m]]
+  data.frame(Model       = m,
+             Kappa       = round(unname(cm$overall["Kappa"]), 3),
+             Accuracy    = round(unname(cm$overall["Accuracy"]), 3),
+             Sensitivity = round(unname(cm$byClass["Sensitivity"]), 3),
+             Specificity = round(unname(cm$byClass["Specificity"]), 3),
+             Hits_caught = cm$table["1", "1"],         # predicted hit, was a hit
+             Missed_hits = cm$table["0", "1"],         # predicted not a hit, was a hit
+             False_alarms = cm$table["1", "0"])        # predicted hit, was not a hit
+}))
+compare <- compare[order(-compare$Kappa), ]
+
+knitr::kable(compare, row.names = FALSE,
+             col.names = c("Model", "Kappa", "Accuracy", "Sensitivity", "Specificity",
+                           "Hits caught", "Missed hits", "False alarms"),
+             caption = "Every finished model on the test songs, best Kappa first")
+
+best      <- compare[1, ]
+n_test    <- sum(cms[[1]]$table)                     # number of test songs
+n_hits    <- sum(cms[[1]]$table[, "1"])              # hits among them
+missing   <- setdiff(models$Model, compare$Model)
+```
+
+The best model so far is **`r best$Model`** with a Kappa of `r best$Kappa`. Of the `r format(n_hits, big.mark = ",")` hits among the `r format(n_test, big.mark = ",")` test songs, it catches `r format(best$Hits_caught, big.mark = ",")` (`r round(100 * best$Sensitivity)`%) and raises `r format(best$False_alarms, big.mark = ",")` false alarms.
+`r if (length(missing) > 0) paste0("*Not yet in this table: ", paste(missing, collapse = ", "), ".*")`
+
+<!-- TODO (group): once the stacked model is finished, say whether it beats the
+best individual model, and why or why not. -->
+
+# 12. Conclusion
+
+*The conclusion, financial analysis and recommendations will be added once every model is finished.*
